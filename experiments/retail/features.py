@@ -190,7 +190,9 @@ def f_passthrough(df, years_back=3):
     f = pd.DataFrame(index=df.index)
     f['pt_beta'] = beta
     f['pt_corr'] = fit
-    f['pt_expected'] = np.exp(np.array(beta) * dg.shift(-1).values)   # 이번 순 기대 소매 비율 = exp(β × 직전 순 가락 변화)
+    # 이번 순 기대 소매 비율 = exp(β × 직전 순 가락 변화). dg 는 이미 한 순 밀려 있다(t-1 ÷ t-2)
+    # 2026-09-29 수정: 처음엔 dg.shift(-1)(= 대상 순 가락 t ÷ t-1)을 써서 대상 순 값이 샜다
+    f['pt_expected'] = np.exp(np.array(beta) * dg.values)
     return f
 
 
