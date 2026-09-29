@@ -192,3 +192,40 @@ def f_passthrough(df, years_back=3):
     f['pt_corr'] = fit
     f['pt_expected'] = np.exp(np.array(beta) * dg.shift(-1).values)   # 이번 순 기대 소매 비율 = exp(β × 직전 순 가락 변화)
     return f
+
+
+# ---------- 양배추 ----------
+# 산지 전환: 1~4월 제주·남해안 월동 → 5~6월 봄 평지 → 7~9월 강원 고랭지 → 10~12월 가을 평지 (농사로·제주 원예작물지도)
+CABBAGE_REGION = {1: 0, 2: 0, 3: 0, 4: 0, 5: 1, 6: 1, 7: 2, 8: 2, 9: 2, 10: 3, 11: 3, 12: 3}
+
+
+def f_cabbage_season(df):
+    """대상 순의 산지 구분 + 전환 직전·직후 순인지 (달력이라 미리 안다)"""
+    f = pd.DataFrame(index=df.index)
+    reg = df.month.map(CABBAGE_REGION)
+    f['cb_region'] = reg
+    f['cb_switch'] = (reg != reg.shift(1)).astype(int)            # 대상 순이 새 산지 첫 순
+    f['cb_pre_switch'] = (reg.shift(-1) != reg).astype(int)       # 다음 순부터 산지가 바뀜
+    return f
+
+
+def f_weather(df, path, stations):
+    """ASOS 일별 → 순 집계(평균기온·최저·강수합·일조), 직전 순 값과 같은 순 과거 평균 대비 편차.
+    stations: {지점번호: 이름}. 대상 순 이전 순만 쓴다(shift 1)"""
+    w = pd.read_csv(path)
+    w['date'] = pd.to_datetime(w.tm.astype(str))
+    w['soon'] = soon_code(w.date)
+    f = pd.DataFrame(index=df.index)
+    for stn, nm in stations.items():
+        g = w[w.stn == stn].groupby('soon').agg(ta=('TA', 'mean'), tmin=('TMIN', 'min'),
+                                                 rn=('RN', lambda x: x.fillna(0).sum()), ss=('SS', 'mean'))
+        for c in g.columns:
+            v = df.soon.map(g[c])
+            v1 = v.shift(1)
+            # 같은 순(36순 전들)의 과거 5년 평균 대비
+            clim = pd.concat([v.shift(1 + 36 * j) for j in range(1, 6)], axis=1).mean(axis=1)
+            f[f'w_{nm}_{c}'] = v1
+            f[f'w_{nm}_{c}_dev'] = v1 - clim
+            if c == 'rn':
+                f[f'w_{nm}_rn3'] = v.shift(1).rolling(3).sum()
+    return f
