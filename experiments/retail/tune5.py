@@ -18,6 +18,9 @@ if item == '양배추':
     G['season'] = f_cabbage_season(df)
     G['weather'] = f_weather(df, DATA + 'retail/cabbage_kma_daily.csv', {184: '제주', 189: '서귀포', 216: '태백'})
     ORDER += ['season', 'weather']
+if item == '양파':
+    G['season'] = f_onion_season(df)
+    ORDER += ['season']
 CORE = ['retail', 'garak']
 
 
