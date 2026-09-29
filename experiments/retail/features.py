@@ -229,3 +229,53 @@ def f_weather(df, path, stations):
             if c == 'rn':
                 f[f'w_{nm}_rn3'] = v.shift(1).rolling(3).sum()
     return f
+
+
+# ---------- KAMIS 안의 다른 가격 (2026-09-29) ----------
+_TRAD = {'경동', '복조리', '영등포', '평균', '평년'}
+
+
+def f_bigmart(df, item):
+    """대형유통(A~L-유통 등) 소매: 판매처 구성이 자주 바뀌어 평균 대신 '같은 판매처의 순 평균 변화율' 중앙값.
+    + 서울 평균 변화, 대형유통이 전통시장보다 먼저 움직였는지"""
+    from common import RETAIL_CSV
+    d = pd.read_csv(RETAIL_CSV, parse_dates=['date'])
+    d = d[d.item == item].copy()
+    d['soon'] = soon_code(d.date)
+    big = d[~d.market.isin(_TRAD)].groupby(['soon', 'market']).price.mean().unstack()
+    big = big.reindex(df.soon)
+    big.index = df.index
+    chg = big / big.shift(1)                              # 판매처별 순 변화 (둘 다 있을 때만)
+    med = chg.median(axis=1, skipna=True)
+    cnt = chg.notna().sum(axis=1)
+    seoul = d[d.market == '평균'].groupby('soon').price.mean()
+    s = df.soon.map(seoul)
+    f = pd.DataFrame(index=df.index)
+    f['bm_chg1'] = med.where(cnt >= 2).shift(1)
+    f['bm_chg2'] = (med.where(cnt >= 2).shift(1) * med.where(cnt >= 2).shift(2))
+    f['bm_n'] = cnt.shift(1)
+    f['seoul_chg1'] = (s / s.shift(1)).shift(1)
+    f['bm_lead'] = f['bm_chg1'] / (df.y / df.y.shift(1)).shift(1)
+    f['trad_vs_seoul'] = (df.y / s).shift(1)
+    return f
+
+
+def f_kamis_wholesale(df, item):
+    """KAMIS 도매(16번, 서울 가락도매 = 중도매인 판매가): 순 평균 변화, 막판, 소매/도매 마진, 도매 평년 대비"""
+    w = pd.read_csv(DATA + 'retail/wholesale_seoul_2014.csv', parse_dates=['date'])
+    w = w[w.item == item]
+    w['soon'] = soon_code(w.date)
+    gd = w[w.market == '가락도매'].sort_values('date')
+    m = gd.groupby('soon').price.mean()
+    last = gd.groupby('soon').price.last()
+    ny = w[w.market == '평년'].groupby('soon').price.mean()
+    v, vl, vn = df.soon.map(m), df.soon.map(last), df.soon.map(ny)
+    f = pd.DataFrame(index=df.index)
+    for k in (1, 2, 3):
+        f[f'kw_chg{k}'] = (v.shift(1) / v.shift(1 + k))
+    f['kw_last_vs_mean'] = (vl / v).shift(1)
+    f['kw_margin'] = (df.y / v).shift(1)
+    f['kw_margin_dev36'] = f.kw_margin / f.kw_margin.rolling(36, min_periods=18).mean()
+    f['kw_vs_ny'] = (v / vn).shift(1)
+    f['kw_vs_garak'] = (v / df.g).shift(1)                 # 중도매인가 ÷ 경락가
+    return f

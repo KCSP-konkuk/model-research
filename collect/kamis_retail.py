@@ -5,6 +5,7 @@
 1회 최대 1년, 가끔 무응답 → 타임아웃 60초 + 3회 재시도. 2014~2026 품목 3개 = 39회 (2026-09-29 전부 1회에 성공)
 
   KAMIS_PROPS=kamis.properties python kamis_retail.py raw/
+  도매(16번 periodWholesaleProductList, 서울 = 가락도매 중도매인 판매가): KAMIS_ACTION=periodWholesaleProductList
   이어서 ../experiments/retail/parse_kamis.py 로 CSV
 """
 import json, os, sys, time, datetime as dt
@@ -17,6 +18,7 @@ conf = dict(l.strip().split('=', 1) for l in open(PROPS) if '=' in l)
 KEY, ID = conf['kamis.cert-key'], conf['kamis.cert-id']
 ITEMS = {'양파': ('200', '245', '00'), '붉은고추': ('200', '243', '00'), '양배추': ('200', '212', '00')}
 URL = 'https://www.kamis.or.kr/service/price/xml.do'
+ACTION = os.environ.get('KAMIS_ACTION', 'periodRetailProductList')
 GAP, TIMEOUT, ATTEMPTS = 1.5, 60, 3
 today = dt.date.today()
 
@@ -27,7 +29,7 @@ for name, (cat, item, kind) in ITEMS.items():
         if os.path.exists(path):
             continue
         end = min(dt.date(y, 12, 31), today)
-        params = dict(action='periodRetailProductList', p_startday=f'{y}-01-01', p_endday=end.isoformat(),
+        params = dict(action=ACTION, p_startday=f'{y}-01-01', p_endday=end.isoformat(),
                       p_itemcategorycode=cat, p_itemcode=item, p_kindcode=kind, p_productrankcode='04',
                       p_countrycode='1101', p_convert_kg_yn='N', p_cert_key=KEY, p_cert_id=ID, p_returntype='json')
         for attempt in range(1, ATTEMPTS + 1):
