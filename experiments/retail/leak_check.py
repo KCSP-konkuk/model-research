@@ -66,9 +66,9 @@ if __name__ == '__main__':
     frame_fns = {'f_retail': F.f_retail, 'f_garak': F.f_garak, 'f_retail_last': F.f_retail_last,
                  'f_calendar': F.f_calendar, 'f_garak_recent': F.f_garak_recent, 'f_market_split': F.f_market_split,
                  'f_passthrough': F.f_passthrough, 'f_cabbage_season': F.f_cabbage_season,
-                 'f_holiday': lambda d: F.f_holiday(d, 1)}
+                 'f_holiday': lambda d: F.f_holiday(d, 1), 'f_onion_season': F.f_onion_season}
     ok = True
-    for item in ('붉은고추', '양배추'):
+    for item in ('붉은고추', '양배추', '양파'):
         file_fns = {'f_bigmart': (lambda d, it=item: F.f_bigmart(d, it), 'date'),
                     'f_kamis_wholesale': (lambda d, it=item: F.f_kamis_wholesale(d, it), 'date')}
         if item == '양배추':
