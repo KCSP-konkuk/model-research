@@ -281,3 +281,19 @@ def f_kamis_wholesale(df, item):
     f['kw_vs_ny'] = (v / vn).shift(1)
     f['kw_vs_garak'] = (v / df.g).shift(1)                 # 중도매인가 ÷ 경락가
     return f
+
+
+# ---------- 양파 ----------
+# 작형: 4~5월 조생(제주·전남 햇양파) / 6월 중만생 수확·출하 / 7월~이듬해 3월 저장양파 출하
+ONION_CROP = {1: 2, 2: 2, 3: 2, 4: 0, 5: 0, 6: 1, 7: 2, 8: 2, 9: 2, 10: 2, 11: 2, 12: 2}
+
+
+def f_onion_season(df):
+    """대상 순의 작형 구분 + 전환 첫 순·직전 순, 저장 출하 몇 달째인지 (달력이라 미리 안다)"""
+    f = pd.DataFrame(index=df.index)
+    crop = df.month.map(ONION_CROP)
+    f['on_crop'] = crop
+    f['on_switch'] = (crop != crop.shift(1)).astype(int)
+    f['on_pre_switch'] = (crop.shift(-1) != crop).astype(int)
+    f['on_storage_month'] = np.where(df.month >= 7, df.month - 6, np.where(df.month <= 3, df.month + 6, 0))
+    return f
