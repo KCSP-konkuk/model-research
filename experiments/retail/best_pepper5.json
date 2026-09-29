@@ -1,0 +1,212 @@
+{
+ "1": {
+  "groups": [
+   "retail",
+   "garak",
+   "rlast"
+  ],
+  "top": [
+   {
+    "K": null,
+    "params": {
+     "max_depth": 5,
+     "n_estimators": 600,
+     "learning_rate": 0.02,
+     "subsample": 1.0,
+     "colsample_bytree": 0.9,
+     "min_child_weight": 3,
+     "reg_lambda": 3.0
+    },
+    "val": 0.6016869138800495
+   },
+   {
+    "K": null,
+    "params": {
+     "max_depth": 5,
+     "n_estimators": 1000,
+     "learning_rate": 0.05,
+     "subsample": 1.0,
+     "colsample_bytree": 0.5,
+     "min_child_weight": 3,
+     "reg_lambda": 1.0
+    },
+    "val": 0.6085465076842295
+   },
+   {
+    "K": 15,
+    "params": {
+     "max_depth": 5,
+     "n_estimators": 1000,
+     "learning_rate": 0.05,
+     "subsample": 1.0,
+     "colsample_bytree": 0.5,
+     "min_child_weight": 3,
+     "reg_lambda": 1.0
+    },
+    "val": 0.6211541864399127
+   },
+   {
+    "K": null,
+    "params": {
+     "max_depth": 4,
+     "n_estimators": 300,
+     "learning_rate": 0.02,
+     "subsample": 1.0,
+     "colsample_bytree": 0.9,
+     "min_child_weight": 1,
+     "reg_lambda": 1.0
+    },
+    "val": 0.6226489773163428
+   },
+   {
+    "K": null,
+    "params": {
+     "max_depth": 5,
+     "n_estimators": 1000,
+     "learning_rate": 0.08,
+     "subsample": 0.8,
+     "colsample_bytree": 0.9,
+     "min_child_weight": 3,
+     "reg_lambda": 3.0
+    },
+    "val": 0.6230137263245967
+   }
+  ],
+  "val_default": 0.6260503823743246
+ },
+ "2": {
+  "groups": [
+   "retail",
+   "garak",
+   "wpred",
+   "hol2"
+  ],
+  "top": [
+   {
+    "K": null,
+    "params": {
+     "max_depth": 5,
+     "n_estimators": 300,
+     "learning_rate": 0.02,
+     "subsample": 0.6,
+     "colsample_bytree": 0.5,
+     "min_child_weight": 3,
+     "reg_lambda": 0.5
+    },
+    "val": 0.6472314801179058
+   },
+   {
+    "K": null,
+    "params": {},
+    "val": 0.6509969212800747
+   },
+   {
+    "K": null,
+    "params": {
+     "max_depth": 5,
+     "n_estimators": 600,
+     "learning_rate": 0.02,
+     "subsample": 0.8,
+     "colsample_bytree": 0.5,
+     "min_child_weight": 1,
+     "reg_lambda": 0.5
+    },
+    "val": 0.651514482209256
+   },
+   {
+    "K": null,
+    "params": {
+     "max_depth": 5,
+     "n_estimators": 600,
+     "learning_rate": 0.03,
+     "subsample": 1.0,
+     "colsample_bytree": 0.9,
+     "min_child_weight": 3,
+     "reg_lambda": 1.0
+    },
+    "val": 0.6531116420978326
+   },
+   {
+    "K": null,
+    "params": {
+     "max_depth": 4,
+     "n_estimators": 600,
+     "learning_rate": 0.08,
+     "subsample": 0.8,
+     "colsample_bytree": 0.7,
+     "min_child_weight": 1,
+     "reg_lambda": 3.0
+    },
+    "val": 0.6546324234945219
+   }
+  ],
+  "val_default": 0.6509969212800747
+ },
+ "3": {
+  "groups": [
+   "retail",
+   "garak",
+   "wpred"
+  ],
+  "top": [
+   {
+    "K": null,
+    "params": {},
+    "val": 0.6716016905312054
+   },
+   {
+    "K": 15,
+    "params": {
+     "max_depth": 2,
+     "n_estimators": 600,
+     "learning_rate": 0.08,
+     "subsample": 0.8,
+     "colsample_bytree": 0.5,
+     "min_child_weight": 6,
+     "reg_lambda": 1.0
+    },
+    "val": 0.6733212012731437
+   },
+   {
+    "K": null,
+    "params": {
+     "max_depth": 2,
+     "n_estimators": 600,
+     "learning_rate": 0.02,
+     "subsample": 0.8,
+     "colsample_bytree": 0.5,
+     "min_child_weight": 3,
+     "reg_lambda": 3.0
+    },
+    "val": 0.6772668744158241
+   },
+   {
+    "K": null,
+    "params": {
+     "max_depth": 3,
+     "n_estimators": 1000,
+     "learning_rate": 0.03,
+     "subsample": 0.6,
+     "colsample_bytree": 0.9,
+     "min_child_weight": 3,
+     "reg_lambda": 3.0
+    },
+    "val": 0.6777113567117614
+   },
+   {
+    "K": null,
+    "params": {
+     "max_depth": 5,
+     "n_estimators": 1000,
+     "learning_rate": 0.05,
+     "subsample": 1.0,
+     "colsample_bytree": 0.5,
+     "min_child_weight": 3,
+     "reg_lambda": 1.0
+    },
+    "val": 0.6779901903468263
+   }
+  ],
+  "val_default": 0.6716016905312054
+ }
+}

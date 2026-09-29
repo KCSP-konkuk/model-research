@@ -127,3 +127,68 @@ def f_holiday(df, horizon=1):
     f['h_pre_chu'] = hit(CHU, k + 1)
     f['h_kimjang'] = np.isin(((df.index + k) % 36) // 3 + 1, [11, 12]).astype(int)
     return f
+
+
+def f_wholesale_pred(df):
+    """홍고추 도매 모델이 순 t 첫날 낸 이번 순 가락 예측(확장 윈도우 재현, wholesale_pred.py).
+    가락이 어디로 갈지 → 소매가 따라갈 방향"""
+    w = pd.read_csv(DATA + 'retail/wholesale_pred_홍고추.csv').set_index('DATE').pred
+    p = df.soon.map(w)
+    f = pd.DataFrame(index=df.index)
+    f['wp_chg'] = p / df.g.shift(1)                 # 예측된 이번 순 가락 변화
+    f['wp_vs_retail'] = p / df.y.shift(1)           # 예측 가락 대비 지금 소매 (마진이 어디로 가야 하나)
+    f['wp_margin_dev'] = (df.y.shift(1) / p) / (df.y / df.g).shift(1).rolling(36, min_periods=18).mean()
+    return f
+
+
+def f_retail_last(df):
+    """직전 순 막판 소매 — 순 안에서 이미 움직였으면 다음 순은 그 수준에서 시작한다"""
+    f = pd.DataFrame(index=df.index)
+    f['r_last_vs_mean'] = (df.r_last / df.y).shift(1)
+    f['r_last3_vs_mean'] = (df.r_last3 / df.y).shift(1)
+    return f
+
+
+def f_market_split(df):
+    """경동·복조리 따로: 각자 막판 값 ÷ 순 평균, 한쪽만 먼저 움직였는지"""
+    f = pd.DataFrame(index=df.index)
+    for m in ('경동', '복조리'):
+        f[f'{m}_last_vs_y'] = (df[f'{m}_last'] / df.y).shift(1)
+        f[f'{m}_chg1'] = (df[m] / df[m].shift(1)).shift(1)
+    f['mkt_lead'] = f['경동_chg1'] / f['복조리_chg1']
+    return f
+
+
+def f_garak_recent(df):
+    """예측 전날까지 최근 5·10 거래일 가락, 순 안 추세(막판 3일 ÷ 첫 3일)"""
+    f = pd.DataFrame(index=df.index)
+    f['g_tail5_vs_mean'] = (df.g_tail5 / df.g).shift(1)
+    f['g_tail10_vs_mean'] = (df.g_tail10 / df.g).shift(1)
+    f['g_tail5_vs_y'] = (df.g_tail5 / df.y).shift(1)        # 최신 가락 대비 소매 (마진)
+    f['g_intra_trend'] = (df.g_last3 / df.g_first3).shift(1)
+    return f
+
+
+def f_passthrough(df, years_back=3):
+    """계절별 전이율: 대상 순과 같은 달의 과거(직전 years_back 년) 순에서
+    소매 변화 = β × 가락 변화(1순 시차) 의 β (원점 회귀). 모델이 가락 신호를 계절마다 얼마나 믿을지.
+    쓰는 쌍은 전부 대상 순의 전년 이전이라 누수 없음"""
+    dr = np.log(df.y / df.y.shift(1))            # 순 s 의 소매 변화
+    dg = np.log(df.g.shift(1) / df.g.shift(2))   # 그 직전 순 가락 변화 (예측 때 아는 값과 같은 시차)
+    beta, fit = [], []
+    for i in df.index:
+        y, m = df.year[i], df.month[i]
+        pool = df.index[(df.month == m) & (df.year < y) & (df.year >= y - years_back)]
+        a, b = dr.reindex(pool), dg.reindex(pool)
+        ok = a.notna() & b.notna()
+        if ok.sum() >= 4 and (b[ok] ** 2).sum() > 0:
+            bt = (a[ok] * b[ok]).sum() / (b[ok] ** 2).sum()
+            beta.append(bt)
+            fit.append(np.corrcoef(a[ok], b[ok])[0, 1] if ok.sum() > 2 else np.nan)
+        else:
+            beta.append(np.nan); fit.append(np.nan)
+    f = pd.DataFrame(index=df.index)
+    f['pt_beta'] = beta
+    f['pt_corr'] = fit
+    f['pt_expected'] = np.exp(np.array(beta) * dg.shift(-1).values)   # 이번 순 기대 소매 비율 = exp(β × 직전 순 가락 변화)
+    return f

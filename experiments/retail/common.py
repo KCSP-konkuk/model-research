@@ -72,11 +72,22 @@ def build_frame(item):
     # 소매 경직성: 순 안에서 판매처 값이 전날과 같았던 비율
     same = (r[list(MARKETS)].diff() == 0).where(r[list(MARKETS)].notna() & r[list(MARKETS)].shift().notna())
     rs['r_same'] = same.mean(axis=1).groupby(r['soon']).mean()
+    # 순 막판 소매: 마지막 조사일·마지막 3조사일 평균, 판매처별 마지막 값
+    rs['r_last'] = r.groupby('soon')['avg'].last()
+    rs['r_last3'] = r.groupby('soon')['avg'].apply(lambda s: s.dropna().tail(3).mean())
+    rs['경동_last'] = r.groupby('soon')['경동'].last()
+    rs['복조리_last'] = r.groupby('soon')['복조리'].last()
 
     g = load_garak_daily(item).to_frame('g')
     g['soon'] = soon_code(g.index)
     gs = g.groupby('soon').g.agg(g='mean', g_last='last', g_first='first', g_days='count')
     gs['g_last3'] = g.groupby('soon').g.apply(lambda s: s.tail(3).mean())
+    gs['g_first3'] = g.groupby('soon').g.apply(lambda s: s.head(3).mean())
+    # 순 경계를 넘는 '예측 전날까지 최근 n 거래일' (순 t 첫날 기준 = t-1 순 마지막 거래일까지)
+    last_day = g.groupby('soon').apply(lambda x: x.index.max())
+    gv = g.g
+    for n in (5, 10):
+        gs[f'g_tail{n}'] = [gv[gv.index <= d].tail(n).mean() for d in last_day.reindex(gs.index)]
 
     df = rs.join(gs, how='left')
     # 진행 중인 순(오늘이 속한 순)은 값이 덜 찼으니 뺀다
@@ -100,7 +111,7 @@ def make_model(params=None, seed=0):
     return xgb.XGBRegressor(**p, random_state=seed)
 
 
-def run(df, X, h, years, k=None, seeds=4, params=None):
+def run(df, X, h, years, k=None, seeds=4, params=None, seed0=0):
     """행 t = 순 t 첫날의 예측. X 의 행 t 는 t-1 순까지의 정보로만 만들어져 있어야 한다.
     반환: 평가 연도 행마다 pred·act·nv(나이브)·year·soon"""
     y = df.y
@@ -121,7 +132,7 @@ def run(df, X, h, years, k=None, seeds=4, params=None):
             m0 = make_model(params, 0).fit(X.loc[tr, cols], ratio[tr])
             cols = list(pd.Series(m0.feature_importances_, index=cols).nlargest(k).index)
         ps = [make_model(params, s).fit(X.loc[tr, cols], ratio[tr]).predict(X.loc[te, cols])
-              for s in range(seeds)]
+              for s in range(seed0, seed0 + seeds)]
         out.append(pd.DataFrame({'pred': np.mean(ps, axis=0) * anchor[te].values, 'act': act[te].values,
                                  'nv': anchor[te].values, 'year': Y, 'soon': df.soon[te].values,
                                  'origin': df.index[te]}))
