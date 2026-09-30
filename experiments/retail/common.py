@@ -28,6 +28,10 @@ FLAT = 0.02   # 방향 3분류의 '비슷' 폭(±2%)
 GARAK = {'붉은고추': DATA + 'daily_홍고추.csv',
          '양파': DATA + 'retail/garak_daily_양파.csv',
          '양배추': DATA + 'retail/garak_daily_양배추.csv'}
+# 가락 경매가 대신 KAMIS 16번 도매(서울 가락도매 = 중도매인 판매가)를 쓰는 품목 (2026-09-30, RETAIL.md 12절)
+# 기존 3품목에서 경매가 자리에 넣어도 검증 MASE 가 ±0.03 안이었다 → 농넷 백필 없이 품목을 늘린다
+KAMIS_G = ('애호박', '시금치')
+WHOLESALE_CSV = DATA + 'retail/wholesale_seoul_2014.csv'
 
 PARAMS = dict(n_estimators=400, max_depth=3, learning_rate=0.05, subsample=0.8,
               colsample_bytree=0.8, min_child_weight=3, reg_lambda=1.0,
@@ -58,6 +62,9 @@ def load_retail_daily(item):
 
 
 def load_garak_daily(item):
+    if item in KAMIS_G:
+        w = pd.read_csv(WHOLESALE_CSV, parse_dates=['date'])
+        return w[(w.item == item) & (w.market == '가락도매')].set_index('date')['price'].astype(float).sort_index()
     g = pd.read_csv(GARAK[item], parse_dates=['date'])
     return g.set_index('date')['상'].dropna().sort_index()
 

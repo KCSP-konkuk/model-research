@@ -3,6 +3,7 @@
 키는 레포에 없다. 서버 /opt/agri-forecast/application-secret.properties 의 kamis.cert-key·cert-id 두 줄을
 로컬 파일로 복사해 KAMIS_PROPS 로 넘긴다. 이미 받은 연도 파일은 건너뛰어 이어받는다.
 1회 최대 1년, 가끔 무응답 → 타임아웃 60초 + 3회 재시도. 2014~2026 품목 3개 = 39회 (2026-09-29 전부 1회에 성공)
+애호박·시금치는 2026-09-30 추가(소매·도매 각 26회, 전부 1회에 성공). 품목만 고르려면 인자로: python kamis_retail.py raw/ 애호박 시금치
 
   KAMIS_PROPS=kamis.properties python kamis_retail.py raw/
   도매(16번 periodWholesaleProductList, 서울 = 가락도매 중도매인 판매가): KAMIS_ACTION=periodWholesaleProductList
@@ -16,14 +17,17 @@ os.makedirs(OUT, exist_ok=True)
 PROPS = os.environ['KAMIS_PROPS']
 conf = dict(l.strip().split('=', 1) for l in open(PROPS) if '=' in l)
 KEY, ID = conf['kamis.cert-key'], conf['kamis.cert-id']
-ITEMS = {'양파': ('200', '245', '00'), '붉은고추': ('200', '243', '00'), '양배추': ('200', '212', '00')}
+ITEMS = {'양파': ('200', '245', '00'), '붉은고추': ('200', '243', '00'), '양배추': ('200', '212', '00'),
+         '애호박': ('200', '224', '01'), '시금치': ('200', '213', '00')}
+ONLY = sys.argv[2:] or list(ITEMS)
 URL = 'https://www.kamis.or.kr/service/price/xml.do'
 ACTION = os.environ.get('KAMIS_ACTION', 'periodRetailProductList')
 GAP, TIMEOUT, ATTEMPTS = 1.5, 60, 3
 today = dt.date.today()
 
 last = 0.0
-for name, (cat, item, kind) in ITEMS.items():
+for name in ONLY:
+    cat, item, kind = ITEMS[name]
     for y in range(2014, today.year + 1):
         path = os.path.join(OUT, f'{name}_{y}.json')
         if os.path.exists(path):

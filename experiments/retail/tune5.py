@@ -2,12 +2,14 @@
 
 tune5_pepper.py(붉은고추)와 같은 절차를 품목별 후보만 바꿔 돌린다. 판정 ±0.012, 핵심 = 소매 + 가락
   python tune5.py 양배추
+  python tune5.py 애호박 1      (h 를 골라 돌린다. 홈에 띄우는 건 h=1 뿐 — 애호박·시금치는 h=1 만 돌렸다)
 """
 import sys, json, random
 from common import *
 from features import *
 
 item = sys.argv[1]
+HS = tuple(int(a) for a in sys.argv[2:]) or HORIZONS
 VAL5 = (2017, 2018, 2019, 2020, 2021)
 TOL = 0.012
 df = build_frame(item)
@@ -33,7 +35,7 @@ def val(gs, h, params=None, k=None, seeds=4):
 
 
 best = {}
-for h in HORIZONS:
+for h in HS:
     sel = list(CORE)
     b = val(sel, h)
     print(f'\n=== {item} h={h}  핵심(소매+가락) {b:.3f}', flush=True)
@@ -65,10 +67,10 @@ def ens(h, years, seeds=12):
 
 
 print('\n=== 검증 5년 앙상블 확인 ===', flush=True)
-for h in HORIZONS:
+for h in HS:
     show(f'h={h} 검증 앙상블', ens(h, VAL5, seeds=4), df)
 print('\n=== 시험 2022~2025 · 추가 2026 (1회) ===', flush=True)
-for h in HORIZONS:
+for h in HS:
     for years, label in ((TEST, '시험'), (EXTRA, '2026')):
         R = ens(h, years)
         R0 = run(df, X_of(best[h]['groups']), h, years, seeds=12)
