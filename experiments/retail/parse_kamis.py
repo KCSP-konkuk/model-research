@@ -9,7 +9,7 @@ for p in sorted(glob.glob(RAW + '/*.json')):
     y = int(y)
     data = json.load(open(p)).get('data')
     if not isinstance(data, dict): continue
-    items = data.get('item', [])
+    items = data.get('item') or []   # 데이터 없으면 item: None (error_code 001)
     if isinstance(items, dict): items = [items]
     for it in items:
         md = (it.get('regday') or '').split('/')
