@@ -2,7 +2,7 @@
 
 tune5_pepper.py(붉은고추)와 같은 절차를 품목별 후보만 바꿔 돌린다. 판정 ±0.012, 핵심 = 소매 + 가락
   python tune5.py 양배추
-  python tune5.py 애호박 1      (h 를 골라 돌린다. 홈에 띄우는 건 h=1 뿐 — 애호박·시금치·오이는 h=1 만 돌렸다)
+  python tune5.py 애호박 1      (h 를 골라 돌린다. 홈에 띄우는 건 h=1 뿐 — KAMIS 도매 품목은 h=1 만 돌렸다)
 """
 import sys, json, random
 from common import *
