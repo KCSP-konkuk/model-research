@@ -3,7 +3,7 @@
 키는 레포에 없다. 서버 /opt/agri-forecast/application-secret.properties 의 kamis.cert-key·cert-id 두 줄을
 로컬 파일로 복사해 KAMIS_PROPS 로 넘긴다. 이미 받은 연도 파일은 건너뛰어 이어받는다.
 1회 최대 1년, 가끔 무응답 → 타임아웃 60초 + 3회 재시도. 2014~2026 품목 3개 = 39회 (2026-09-29 전부 1회에 성공)
-애호박·시금치는 2026-09-30, 오이(다다기)는 2026-10-02 추가(소매·도매 각 26회, 전부 1회에 성공). 품목만 고르려면 인자로: python kamis_retail.py raw/ 오이
+애호박·시금치는 2026-09-30, 오이(다다기)·꽈리고추·피망(청)·파프리카는 2026-10-02 추가(품목당 소매·도매 각 13회, 전부 1회에 성공). 품목만 고르려면 인자로: python kamis_retail.py raw/ 오이
 데이터 없는 품목은 data: {error_code: '001', item: None} 으로 온다 — 0 rows 로 저장하고 재시도하지 않는다
 
   KAMIS_PROPS=kamis.properties python kamis_retail.py raw/
@@ -19,7 +19,8 @@ PROPS = os.environ['KAMIS_PROPS']
 conf = dict(l.strip().split('=', 1) for l in open(PROPS) if '=' in l)
 KEY, ID = conf['kamis.cert-key'], conf['kamis.cert-id']
 ITEMS = {'양파': ('200', '245', '00'), '붉은고추': ('200', '243', '00'), '양배추': ('200', '212', '00'),
-         '애호박': ('200', '224', '01'), '시금치': ('200', '213', '00'), '오이': ('200', '223', '02')}
+         '애호박': ('200', '224', '01'), '시금치': ('200', '213', '00'), '오이': ('200', '223', '02'),
+         '꽈리고추': ('200', '242', '02'), '피망': ('200', '255', '00'), '파프리카': ('200', '256', '00')}
 ONLY = sys.argv[2:] or list(ITEMS)
 URL = 'https://www.kamis.or.kr/service/price/xml.do'
 ACTION = os.environ.get('KAMIS_ACTION', 'periodRetailProductList')
